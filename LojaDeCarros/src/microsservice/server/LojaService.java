@@ -8,17 +8,21 @@ import util.ClientSocket;
 
 public class LojaService {
 
-    public final int PORTA = 1060;
+    // 1060
+    public final int PORTA;
 
     public final int FIREWALL_PORTA = 10101;
 
-    public final int DATABASE_PORTA = 6156;
+    // 6156
+    public final int DATABASE_PORTA;
 
     private final String ENDERECO_SERVER = "localhost";
 
     private ServerSocket serverSocket;
 
-    public LojaService() {
+    public LojaService(int port, int database) {
+        this.PORTA = port;
+        this.DATABASE_PORTA = database;
     }
 
     public void start() throws IOException {

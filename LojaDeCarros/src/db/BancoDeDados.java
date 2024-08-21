@@ -20,15 +20,20 @@ public class BancoDeDados {
 
     private final String ENDERECO_SERVER = "localhost";
 
-    private final int PORTA = 6156;
+    // 6156
+    private final int PORTA;
 
-    private final int PORTA_PROXIMO2 = 6157;
+    // 6157
+    private final int PORTA_PROXIMO2;
 
-    private final int PORTA_PROXIMO3 = 6158;
+    // 6158
+    private final int PORTA_PROXIMO3;
 
-    private final int AUTENTICAR_SERVICO_PORTA = 1050;
+    // 1050
+    private final int AUTENTICAR_SERVICO_PORTA;
 
-    private final int LOJA_SERVICO_PORTA = 1060;
+    // 1060
+    private final int LOJA_SERVICO_PORTA;
 
     private Table<Cliente, Integer> clientes;
 
@@ -40,8 +45,19 @@ public class BancoDeDados {
 
     private CifrasSimetricas cifrasSimetricas;
 
-    public BancoDeDados() {
-        cifrasSimetricas = new CifrasSimetricas();
+    public BancoDeDados(int db_porta, int db_2_porta, int db_3_porta, int loja_porta, int autenticacao_porta) {
+
+        this.PORTA = db_porta;
+        this.PORTA_PROXIMO2 = db_2_porta;
+        this.PORTA_PROXIMO3 = db_3_porta;
+        this.LOJA_SERVICO_PORTA = loja_porta;
+        this.AUTENTICAR_SERVICO_PORTA = autenticacao_porta;
+
+        this.cifrasSimetricas = new CifrasSimetricas();
+        initDB();
+    }
+    
+    private void initDB(){
         this.clientes = new Table<>();
         this.veiculos = new Table<>();
         this.funcionarios = new Table<>();
@@ -80,6 +96,7 @@ public class BancoDeDados {
                 Integer.parseInt("1112"));
         this.veiculos.Adicionar(new Veiculo("1212", "HR-V", Categoria.EXECUTIVO, LocalDate.of(2021, 9, 5), 290000.0),
                 Integer.parseInt("1212"));
+
     }
 
     public void database() throws IOException {

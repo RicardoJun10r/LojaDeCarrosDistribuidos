@@ -5,6 +5,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.LinkedList;
 import java.util.List;
+
+import balanceamento_de_carga.AlgoBalanceamento;
+
 import java.net.InetSocketAddress;
 
 import util.ClientSocket;
@@ -31,7 +34,10 @@ public class Firewall {
 
     private final List<ClientSocket> USUARIOS = new LinkedList<>();
 
-    public Firewall() {
+    private AlgoBalanceamento algoBalanceamento;
+
+    public Firewall(String algoritmo_balanceamento) {
+        this.algoBalanceamento = new AlgoBalanceamento(algoritmo_balanceamento, 3);
     }
 
     public void start() throws IOException {
@@ -158,25 +164,31 @@ public class Firewall {
     }
 
     private ClientSocket tryConnect(){
-        try {
-            Socket loja = new Socket();
-            loja.connect(new InetSocketAddress(ENDERECO_SERVER, LOJA_PORTA), 5*1000);
-            return new ClientSocket(loja);
-        } catch (Exception e) {
-            System.out.println("Erro: " + e);
+        int servidor = this.algoBalanceamento.algo();
+        Socket loja = new Socket();
+        if(servidor == 0){
             try {
-                Socket replica2 = new Socket();
-                replica2.connect(new InetSocketAddress(ENDERECO_SERVER, LOJA_PORTA_REPLICA2), 5*1000);
-                return new ClientSocket(replica2);
-            } catch (IOException e1) {
-                e1.printStackTrace();
-                try {
-                    Socket replica3 = new Socket();
-                    replica3.connect(new InetSocketAddress(ENDERECO_SERVER, LOJA_PORTA_REPLICA3), 5*1000);
-                    return new ClientSocket(replica3);
-                } catch (Exception e2) {
-                    e1.printStackTrace();
-                }
+                loja.connect(new InetSocketAddress(ENDERECO_SERVER, LOJA_PORTA), 5*1000);
+                System.out.println("Entrou loja 1");
+                return new ClientSocket(loja);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else if(servidor == 1){
+            try {
+                loja.connect(new InetSocketAddress(ENDERECO_SERVER, LOJA_PORTA_REPLICA2), 5*1000);
+                System.out.println("Entrou loja 2");
+                return new ClientSocket(loja);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            try {
+                loja.connect(new InetSocketAddress(ENDERECO_SERVER, LOJA_PORTA_REPLICA3), 5*1000);
+                System.out.println("Entrou loja 3");
+                return new ClientSocket(loja);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
         return null;

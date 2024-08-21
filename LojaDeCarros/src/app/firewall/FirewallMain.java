@@ -6,7 +6,7 @@ import firewall.Firewall;
 
 public class FirewallMain {
     public static void main(String[] args) {
-        Firewall firewall = new Firewall();
+        Firewall firewall = new Firewall("RR");
         try {
             firewall.start();
         } catch (IOException e) {

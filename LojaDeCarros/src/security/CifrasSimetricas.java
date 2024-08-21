@@ -13,7 +13,6 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.Mac;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
-import java.security.SecureRandom;
 import java.security.MessageDigest;
 public class CifrasSimetricas implements Serializable {
 

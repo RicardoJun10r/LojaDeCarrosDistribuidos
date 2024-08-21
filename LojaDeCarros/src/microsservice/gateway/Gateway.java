@@ -16,7 +16,8 @@ import util.Sessao;
 
 public class Gateway {
 
-    public final int PORTA = 1042;
+    // 1042
+    public final int PORTA;
 
     private final String ENDERECO_SERVER = "localhost";
 
@@ -30,7 +31,8 @@ public class Gateway {
 
     private final Map<SocketAddress, Sessao> SESSAO = new HashMap<>();
 
-    public Gateway() {
+    public Gateway(int port) {
+        this.PORTA = port;
     }
 
     public void start() throws IOException {
