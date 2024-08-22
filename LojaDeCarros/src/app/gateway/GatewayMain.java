@@ -6,7 +6,10 @@ import microsservice.gateway.Gateway;
 
 public class GatewayMain {
     public static void main(String[] args) {
-        Gateway gateway = new Gateway();
+        // 1
+        Gateway gateway = new Gateway(1042);
+        // 2
+        //Gateway gateway = new Gateway(1043);
         try {
             gateway.start();
         } catch (IOException e) {
