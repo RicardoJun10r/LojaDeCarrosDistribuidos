@@ -13,7 +13,7 @@ import java.net.InetSocketAddress;
 
 public class UserInterface implements Runnable {
 
-    private final String ENDERECO_SERVER = "localhost";
+    private final String ENDERECO_SERVER = "172.20.10.2";
 
     private final int GATEWAY_PORTA = 1042;
 
@@ -247,8 +247,8 @@ public class UserInterface implements Runnable {
 
     private ClientSocket tryConnect(){
         try {
-            Socket gateway = new Socket();
-            gateway.connect(new InetSocketAddress(ENDERECO_SERVER, GATEWAY_PORTA), 5*1000);
+            Socket gateway = new Socket(ENDERECO_SERVER, GATEWAY_PORTA);
+            //gateway.connect(new InetSocketAddress(ENDERECO_SERVER, GATEWAY_PORTA), 5*1000);
             System.out
                     .println("Cliente conectado ao gateway de endereço = " + ENDERECO_SERVER + " na porta = " + GATEWAY_PORTA);
             return new ClientSocket(gateway);
@@ -271,7 +271,10 @@ public class UserInterface implements Runnable {
         try {
             
             clientSocket = tryConnect();
-            
+            if (clientSocket == null) {
+                System.out.println("Não foi possível estabelecer a conexão com o servidor.");
+                return;
+            }
             new Thread(this).start();
             this.rsa.gerarPG();
             this.rsa.setN(this.rsa.getP()*this.rsa.getQ());

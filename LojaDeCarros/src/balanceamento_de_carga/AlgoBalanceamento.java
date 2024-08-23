@@ -1,5 +1,6 @@
 package balanceamento_de_carga;
 
+import java.util.Arrays;
 import java.util.Random;
 
 import util.TipoBalanceamento;
@@ -20,6 +21,9 @@ public class AlgoBalanceamento {
         this.tipo = validarAlgo(tipo);
         this.quantidade_servidores = servidores;
         this.servidor_index = -1;
+        this.servidor_index = 0;
+        initFrequencia();
+        this.random = new Random();
     }
 
     private TipoBalanceamento validarAlgo(String tipo) {
@@ -27,14 +31,10 @@ public class AlgoBalanceamento {
             case "RR":
                 return TipoBalanceamento.RR;
             case "LC":
-                initFrequencia();
                 return TipoBalanceamento.LC;
             case "WRR":
-                this.servidor_index = 0;
-                initFrequencia();
                 return TipoBalanceamento.WRR;
             case "RA":
-                this.random = new Random();
                 return TipoBalanceamento.RA;
             default:
                 return TipoBalanceamento.RR;
@@ -69,35 +69,43 @@ public class AlgoBalanceamento {
     }
 
     private int LC() {
-        this.frequencias[RR()]++;
-        return menor(this.frequencias);
+        int index = RA();
+        this.frequencias[index]++;
+        return menor();
     }
 
     private int WRR() {
-        if (this.servidor_index > this.quantidade_servidores) {
+        if (this.servidor_index == this.quantidade_servidores) {
+            System.out.println("reiniciando vetor");
             this.servidor_index = 0;
             initFrequencia();
         }
-        if (this.frequencias[this.servidor_index] < (this.servidor_index + 1))
+        if (this.frequencias[this.servidor_index] < (this.servidor_index + 1)){
+            System.out.println("aumentando frequencia");
             this.frequencias[this.servidor_index]++;
+        }
         else {
+            System.out.println("somando index");
             this.servidor_index++;
             this.frequencias[this.servidor_index]++;
         }
+        System.out.println("SERVIDOR_INDEX: " + this.servidor_index);
         return this.servidor_index;
     }
 
     private int RA() {
-        return this.random.nextInt(this.quantidade_servidores) - 1;
+        return this.random.nextInt(this.quantidade_servidores);
     }
 
-    private int menor(int[] vet) {
-        int __ = vet[0];
-        for (int i = 0; i < vet.length; i++) {
-            if (__ > vet[i])
-                __ = vet[i];
+    private int menor() {
+        int index = 0;
+        for (int i = 1; i < this.frequencias.length; i++) {
+            if (this.frequencias[i] < this.frequencias[index]) {
+                index = i;
+            }
         }
-        return __;
+        System.out.println(Arrays.toString(this.frequencias));
+        return index;
     }
 
 }

@@ -1,6 +1,7 @@
 package microsservice.gateway;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
@@ -22,7 +23,7 @@ public class Gateway {
     // 1042
     public final int PORTA;
 
-    private final String ENDERECO_SERVER = "localhost";
+    private final String ENDERECO_SERVER = "172.20.10.2";
 
     private final int FIREWALL_PORTA = 10101;
 
@@ -44,7 +45,8 @@ public class Gateway {
     }
 
     public void start() throws IOException {
-        serverSocket = new ServerSocket(PORTA);
+        //serverSocket = new ServerSocket(PORTA);
+        serverSocket = new ServerSocket(PORTA, 50, InetAddress.getByName(ENDERECO_SERVER));
         System.out.println("Iniciando servidor na porta = " + PORTA);
         this.FIREWALL = (new ClientSocket(new Socket(ENDERECO_SERVER, FIREWALL_PORTA)));
         System.out.println("Conectado ao FIREWALL ...");
@@ -117,6 +119,7 @@ public class Gateway {
                                     this.SESSAO.put(socketAddress, sessao);
                                     String aes = sessao.getSeguranca().cifrar("status true");
                                     String msg_rsa = sessao.getRsa().cifragemServer(aes);
+                                    System.out.println("USUARIO LOGADO, REENVIANDO, UNICAST COM STRING");
                                     unicast(msg[4], msg_rsa);
                                 } else {
                                     this.SESSAO.put(socketAddress, new Sessao(false, false));
@@ -223,8 +226,12 @@ public class Gateway {
     }
 
     private void unicast(String destinario, String mensagem) {
-        this.predicate = socket -> socket.getSocketAddress().toString().equals(destinario);
-        this.USUARIOS.stream().filter(predicate).findFirst().get().sendMessage(mensagem);
+        //this.predicate = socket -> socket.getSocketAddress().toString().equals(destinario);
+        System.out.println(destinario);
+        this.USUARIOS.forEach(c -> System.out.println(c.getSocketAddress()));
+        this.USUARIOS.stream().filter(
+            conexao -> conexao.getSocketAddress().toString().equals(destinario)
+        ).findFirst().get().sendMessage(mensagem);
     }
 
 }

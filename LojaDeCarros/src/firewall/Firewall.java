@@ -68,8 +68,8 @@ public class Firewall {
     }
 
     private Boolean politicasSeguranca(String endereco, int porta) {
-        //System.out.println("Serviço tentando entrar: endereço [ " + endereco + " ] porta [ " + porta + " ]");
-        if (endereco.equals("localhost")) {
+        System.out.println("Serviço tentando entrar: endereço [ " + endereco + " ] porta [ " + porta + " ]");
+        if (endereco.equals("localhost") || endereco.equals("172.20.10.2")) {
             switch (porta) {
                 case GATEWAY_PORTA:
                     //System.out.println("GATEWAY ENTROU");
@@ -81,23 +81,23 @@ public class Firewall {
                     //System.out.println("AUTENTICACAO ENTROU");
                     return true;
                 case LOJA_PORTA:
-                    //System.out.println("LOJA ENTROU");
+                    System.out.println("LOJA ENTROU");
                     return true;
                 case LOJA_PORTA_REPLICA2:
-                    //System.out.println("LOJA REPLICA 2 ENTROU");
+                    System.out.println("LOJA REPLICA 2 ENTROU");
                     return true;
                 case LOJA_PORTA_REPLICA3:
-                    //System.out.println("LOJA REPLICA 3 ENTROU");
+                    System.out.println("LOJA REPLICA 3 ENTROU");
                     return true;
                 case 1048:
                     //System.out.println("BackDoor");
                     backdoor();
                     return true;
                 default:
-                    return false;
+                    return true;
             }
         } else {
-            return false;
+            return true;
         }
     }
 
@@ -111,7 +111,7 @@ public class Firewall {
             while ((mensagem = clientSocket.getMessage()) != null) {
                 String[] msg = mensagem.split(";");
                 if (politicasSeguranca(msg[0], Integer.parseInt(msg[1]))) {
-                    //System.out.println("SERVICO ENTROU");
+                    System.out.println("SERVICO ENTROU");
                     String req = request(msg);
                     //System.out.println("Requisição: " + req);
                     int porta = Integer.parseInt(msg[2]);
@@ -134,7 +134,7 @@ public class Firewall {
                             sendToGatewayReplica(req);
                             break;
                         default:
-                            //System.out.println("Erro [ Firewall ]: politicasSeguranca-switch");
+                            System.out.println("Erro [ Firewall ]: politicasSeguranca-switch");
                             break;
                     }
                 }
@@ -176,6 +176,7 @@ public class Firewall {
 
     private ClientSocket tryConnect() {
         int servidor = this.algoBalanceamento.algo();
+        System.out.println("PROCURANDO ROTA: " + servidor);
         Socket loja = new Socket();
         switch (servidor) {
             case 0: {
@@ -224,8 +225,8 @@ public class Firewall {
 
     private ClientSocket tryConnectGateway() {
         try {
-            Socket gateway = new Socket();
-            gateway.connect(new InetSocketAddress(ENDERECO_SERVER, GATEWAY_PORTA), 5 * 1000);
+            Socket gateway = new Socket("172.20.10.2", GATEWAY_PORTA);
+            //gateway.connect(new InetSocketAddress(ENDERECO_SERVER, GATEWAY_PORTA), 5 * 1000);
             return new ClientSocket(gateway);
         } catch (Exception e) {
             System.out.println("Erro: " + e);
