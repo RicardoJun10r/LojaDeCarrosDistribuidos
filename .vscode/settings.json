@@ -1,0 +1,7 @@
+{
+    "java.project.sourcePaths": [
+        "LojaDeCarros/src"
+    ],
+    "java.project.referencedLibraries": [],
+    "java.jdt.ls.vmargs": "--enable-preview"
+}

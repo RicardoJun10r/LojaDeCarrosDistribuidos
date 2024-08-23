@@ -17,6 +17,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.net.InetSocketAddress;
+import java.util.function.Predicate;
 
 public class BancoDeDados {
 
@@ -48,6 +49,8 @@ public class BancoDeDados {
     private CifrasSimetricas cifrasSimetricas;
 
     private ExecutorService executorService;
+
+    private Predicate<Veiculo> predicate;
 
     public BancoDeDados(int db_porta, int db_2_porta, int db_3_porta, int loja_porta, int autenticacao_porta) {
         this.PORTA = db_porta;
@@ -381,8 +384,9 @@ public class BancoDeDados {
     }
 
     private String selectAllVeiculos() {
+        this.predicate = veiculo -> veiculo.getA_venda() || veiculo.getCliente() == null;
         return this.veiculos.toStream()
-                .filter(veiculo -> veiculo.getA_venda() || veiculo.getCliente() == null)
+                .filter(predicate)
                 .map(Veiculo::toString)
                 .collect(Collectors.joining("*"));
     }
