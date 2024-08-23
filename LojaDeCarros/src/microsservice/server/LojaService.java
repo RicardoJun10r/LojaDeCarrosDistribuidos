@@ -3,6 +3,8 @@ package microsservice.server;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import util.ClientSocket;
 
@@ -20,9 +22,12 @@ public class LojaService {
 
     private ServerSocket serverSocket;
 
+    private ExecutorService executorService;
+
     public LojaService(int port, int database) {
         this.PORTA = port;
         this.DATABASE_PORTA = database;
+        this.executorService = Executors.newVirtualThreadPerTaskExecutor();
     }
 
     public void start() throws IOException {
@@ -34,13 +39,15 @@ public class LojaService {
     private void lojaService() throws IOException {
         while (true) {
             ClientSocket clientSocket = new ClientSocket(this.serverSocket.accept());
-            new Thread(() -> {
-                try {
-                    lojaLoop(clientSocket);
-                } catch (IOException e) {
-                    e.printStackTrace();
+            this.executorService.submit(
+                () -> {
+                    try {
+                        lojaLoop(clientSocket);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
-            }).start();
+            );
         }
     }
 
@@ -128,6 +135,10 @@ public class LojaService {
         } finally {
             clientSocket.close();
         }
+    }
+
+    public void shutdown(){
+        executorService.shutdownNow();
     }
 
     private void sendToFirewall(String mensagem) {

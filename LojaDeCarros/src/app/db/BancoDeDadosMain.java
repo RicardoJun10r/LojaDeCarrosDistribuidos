@@ -17,5 +17,6 @@ public class BancoDeDadosMain {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        bancoDeDados.shutdown();
     }
 }

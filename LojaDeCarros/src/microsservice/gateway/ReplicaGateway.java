@@ -8,6 +8,9 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.Predicate;
 
 import javax.crypto.SecretKey;
 
@@ -30,7 +33,12 @@ public class ReplicaGateway {
 
     private final Map<SocketAddress, Sessao> SESSAO = new HashMap<>();
 
+    private Predicate<ClientSocket> predicate;
+
+    private ExecutorService executorService;
+
     public ReplicaGateway() {
+        this.executorService = Executors.newVirtualThreadPerTaskExecutor();
     }
 
     public void start() throws IOException {
@@ -46,13 +54,15 @@ public class ReplicaGateway {
             ClientSocket clientSocket = new ClientSocket(this.serverSocket.accept());
             USUARIOS.add(clientSocket);
             this.SESSAO.put(clientSocket.getSocketAddress(), new Sessao(false, false));
-            new Thread(() -> {
-                try {
-                    gatewayLoop(clientSocket);
-                } catch (IOException e) {
-                    e.printStackTrace();
+            this.executorService.submit(
+                () -> {
+                    try {
+                        gatewayLoop(clientSocket);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
-            }).start();
+            );
         }
     }
 
@@ -105,17 +115,17 @@ public class ReplicaGateway {
                                     this.SESSAO.put(socketAddress, sessao);
                                     String aes = sessao.getSeguranca().cifrar("status true");
                                     String msg_rsa = sessao.getRsa().cifragemServer(aes);
-                                    unicast_with_string(msg[4], msg_rsa);
+                                    unicast(msg[4], msg_rsa);
                                 } else {
                                     this.SESSAO.put(socketAddress, new Sessao(false, false));
                                     String aes = sessao.getSeguranca().cifrar("status false");
                                     String msg_rsa = sessao.getRsa().cifragemServer(aes);
-                                    unicast_with_string(msg[4], msg_rsa);
+                                    unicast(msg[4], msg_rsa);
                                 }
                             } else if (msg[2].equals("criado")) {
                                 String aes = sessao.getSeguranca().cifrar("Conta criada!");
                                 String msg_rsa = sessao.getRsa().cifragemServer(aes);
-                                unicast_with_string(msg[3], msg_rsa);
+                                unicast(msg[3], msg_rsa);
                             }
                         } else if (msg[1].equals("cliente")) {
 
@@ -150,7 +160,7 @@ public class ReplicaGateway {
                                 sessao = this.SESSAO.get(socketAddress);
                                 String aes = sessao.getSeguranca().cifrar("lista " + mensagem.split(";")[3]);
                                 String msg_rsa = sessao.getRsa().cifragemServer(aes);
-                                unicast_with_string(mensagem.split(";")[4], msg_rsa);
+                                unicast(mensagem.split(";")[4], msg_rsa);
                             } else {
                                 SocketAddress socketAddress = this.USUARIOS.stream()
                                         .filter(conexoes -> conexoes.getSocketAddress().toString().equals(msg[3]))
@@ -159,7 +169,7 @@ public class ReplicaGateway {
                                 sessao = this.SESSAO.get(socketAddress);
                                 String aes = sessao.getSeguranca().cifrar(mensagem.split(";")[2]);
                                 String msg_rsa = sessao.getRsa().cifragemServer(aes);
-                                unicast_with_string(mensagem.split(";")[3], msg_rsa);
+                                unicast(mensagem.split(";")[3], msg_rsa);
                             }
                         } else if (mensagem.split(";")[1].equals("cliente")) {
                             String msg_aberta = sessao.getRsa().decifragemCliente(msg[2]);
@@ -191,6 +201,10 @@ public class ReplicaGateway {
         }
     }
 
+    public void shutdown(){
+        executorService.shutdownNow();
+    }
+
     private Boolean autenticarMensagem(String mensagem, String hmac_recebido, Sessao sessao) {
         String hmac = sessao.getSeguranca().hMac(mensagem);
         if (hmac.equals(hmac_recebido))
@@ -200,17 +214,13 @@ public class ReplicaGateway {
     }
 
     private void unicast(ClientSocket destinario, String mensagem) {
-        ClientSocket emissor = this.USUARIOS.stream()
-                .filter(user -> user.getSocketAddress().equals(destinario.getSocketAddress()))
-                .findFirst().get();
-        emissor.sendMessage(mensagem);
+        this.predicate = socket -> socket.getSocketAddress().equals(destinario.getSocketAddress());
+        this.USUARIOS.stream().filter(predicate).findFirst().get().sendMessage(mensagem);
     }
 
-    private void unicast_with_string(String destinario, String mensagem) {
-        ClientSocket emissor = this.USUARIOS.stream()
-                .filter(user -> user.getSocketAddress().toString().equals(destinario))
-                .findFirst().get();
-        emissor.sendMessage(mensagem);
+    private void unicast(String destinario, String mensagem) {
+        this.predicate = socket -> socket.getSocketAddress().toString().equals(destinario);
+        this.USUARIOS.stream().filter(predicate).findFirst().get().sendMessage(mensagem);
     }
 
 }

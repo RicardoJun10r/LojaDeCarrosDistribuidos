@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.lang.NullPointerException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.net.InetSocketAddress;
 
@@ -45,16 +47,17 @@ public class BancoDeDados {
 
     private CifrasSimetricas cifrasSimetricas;
 
-    public BancoDeDados(int db_porta, int db_2_porta, int db_3_porta, int loja_porta, int autenticacao_porta) {
+    private ExecutorService executorService;
 
+    public BancoDeDados(int db_porta, int db_2_porta, int db_3_porta, int loja_porta, int autenticacao_porta) {
         this.PORTA = db_porta;
         this.PORTA_PROXIMO2 = db_2_porta;
         this.PORTA_PROXIMO3 = db_3_porta;
         this.LOJA_SERVICO_PORTA = loja_porta;
         this.AUTENTICAR_SERVICO_PORTA = autenticacao_porta;
-
         this.cifrasSimetricas = new CifrasSimetricas();
         initDB();
+        this.executorService = Executors.newVirtualThreadPerTaskExecutor();
     }
     
     private void initDB(){
@@ -102,9 +105,11 @@ public class BancoDeDados {
     public void database() throws IOException {
         while (true) {
             ClientSocket clientSocket = new ClientSocket(this.serverSocket.accept());
-            new Thread(() -> {
-                queries(clientSocket);
-            }).start();
+            this.executorService.submit(
+                () -> {
+                    queries(clientSocket);
+                }
+            );
         }
     }
 
@@ -267,6 +272,10 @@ public class BancoDeDados {
         } finally {
             clientSocket.close();
         }
+    }
+
+    public void shutdown(){
+        executorService.shutdownNow();
     }
 
     private ClientSocket tryConnect(int porta) {

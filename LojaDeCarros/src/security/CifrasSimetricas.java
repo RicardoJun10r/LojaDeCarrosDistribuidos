@@ -122,7 +122,7 @@ public class CifrasSimetricas implements Serializable {
 
     public String decifrar(String textoCifrado) {
 
-        System.out.println("texto cifrado: " + textoCifrado);
+        //System.out.println("texto cifrado: " + textoCifrado);
 
         byte[] bytesMensagemCifrada = decodificar(textoCifrado);
         String mensagemDecifrada = "";

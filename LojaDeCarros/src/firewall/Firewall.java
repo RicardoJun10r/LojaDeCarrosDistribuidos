@@ -5,6 +5,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import balanceamento_de_carga.AlgoBalanceamento;
 
@@ -36,8 +38,11 @@ public class Firewall {
 
     private AlgoBalanceamento algoBalanceamento;
 
+    private ExecutorService executorService;
+
     public Firewall(String algoritmo_balanceamento) {
         this.algoBalanceamento = new AlgoBalanceamento(algoritmo_balanceamento, 3);
+        this.executorService = Executors.newVirtualThreadPerTaskExecutor();
     }
 
     public void start() throws IOException {
@@ -50,40 +55,42 @@ public class Firewall {
         while (true) {
             ClientSocket clientSocket = new ClientSocket(this.serverSocket.accept());
             USUARIOS.add(clientSocket);
-            new Thread(() -> {
-                try {
-                    firewallLoop(clientSocket);
-                } catch (IOException e) {
-                    e.printStackTrace();
+            this.executorService.submit(
+                () -> {
+                    try {
+                        firewallLoop(clientSocket);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
-            }).start();
+            );
         }
     }
 
     private Boolean politicasSeguranca(String endereco, int porta) {
-        System.out.println("Serviço tentando entrar: endereço [ " + endereco + " ] porta [ " + porta + " ]");
+        //System.out.println("Serviço tentando entrar: endereço [ " + endereco + " ] porta [ " + porta + " ]");
         if (endereco.equals("localhost")) {
             switch (porta) {
                 case GATEWAY_PORTA:
-                    System.out.println("GATEWAY ENTROU");
+                    //System.out.println("GATEWAY ENTROU");
                     return true;
                 case GATEWAY_REPLICA_PORTA:
-                    System.out.println("GATEWAY REPLICA ENTROU");
+                    //System.out.println("GATEWAY REPLICA ENTROU");
                     return true;
                 case AUTENTICACAO_PORTA:
-                    System.out.println("AUTENTICACAO ENTROU");
+                    //System.out.println("AUTENTICACAO ENTROU");
                     return true;
                 case LOJA_PORTA:
-                    System.out.println("LOJA ENTROU");
+                    //System.out.println("LOJA ENTROU");
                     return true;
                 case LOJA_PORTA_REPLICA2:
-                    System.out.println("LOJA REPLICA 2 ENTROU");
+                    //System.out.println("LOJA REPLICA 2 ENTROU");
                     return true;
                 case LOJA_PORTA_REPLICA3:
-                    System.out.println("LOJA REPLICA 3 ENTROU");
+                    //System.out.println("LOJA REPLICA 3 ENTROU");
                     return true;
                 case 1048:
-                    System.out.println("BackDoor");
+                    //System.out.println("BackDoor");
                     backdoor();
                     return true;
                 default:
@@ -104,30 +111,30 @@ public class Firewall {
             while ((mensagem = clientSocket.getMessage()) != null) {
                 String[] msg = mensagem.split(";");
                 if (politicasSeguranca(msg[0], Integer.parseInt(msg[1]))) {
-                    System.out.println("SERVICO ENTROU");
+                    //System.out.println("SERVICO ENTROU");
                     String req = request(msg);
-                    System.out.println("Requisição: " + req);
+                    //System.out.println("Requisição: " + req);
                     int porta = Integer.parseInt(msg[2]);
-                    System.out.println("porta: " + porta);
+                    //System.out.println("porta: " + porta);
                     switch (porta) {
                         case AUTENTICACAO_PORTA:
-                            System.out.println("sendAutenticar()");
+                            //System.out.println("sendAutenticar()");
                             sendAutenticar(req);
                             break;
                         case LOJA_PORTA:
-                            System.out.println("sendLoja()");
+                            //System.out.println("sendLoja()");
                             sendLoja(req);
                             break;
                         case GATEWAY_PORTA:
-                            System.out.println("sendToGateway()");
+                            //System.out.println("sendToGateway()");
                             sendToGateway(req);
                             break;
                         case GATEWAY_REPLICA_PORTA:
-                            System.out.println("sendToGatewayReplica()");
+                            //System.out.println("sendToGatewayReplica()");
                             sendToGatewayReplica(req);
                             break;
                         default:
-                            System.out.println("Erro [ Firewall ]: politicasSeguranca-switch");
+                            //System.out.println("Erro [ Firewall ]: politicasSeguranca-switch");
                             break;
                     }
                 }
@@ -135,6 +142,10 @@ public class Firewall {
         } finally {
             clientSocket.close();
         }
+    }
+
+    public void shutdown(){
+        executorService.shutdownNow();
     }
 
     private String request(String[] msg) {
@@ -170,7 +181,7 @@ public class Firewall {
             case 0: {
                 try {
                     loja.connect(new InetSocketAddress(ENDERECO_SERVER, LOJA_PORTA), 5 * 1000);
-                    System.out.println("Entrou loja 1");
+                    System.out.println("SERVIDOR 1");
                     return new ClientSocket(loja);
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -180,7 +191,7 @@ public class Firewall {
             case 1: {
                 try {
                     loja.connect(new InetSocketAddress(ENDERECO_SERVER, LOJA_PORTA_REPLICA2), 5 * 1000);
-                    System.out.println("Entrou loja 2");
+                    System.out.println("SERVIDOR 2");
                     return new ClientSocket(loja);
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -190,7 +201,7 @@ public class Firewall {
             case 2: {
                 try {
                     loja.connect(new InetSocketAddress(ENDERECO_SERVER, LOJA_PORTA_REPLICA3), 5 * 1000);
-                    System.out.println("Entrou loja 3");
+                    System.out.println("SERVIDOR 3");
                     return new ClientSocket(loja);
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -200,7 +211,7 @@ public class Firewall {
             default: {
                 try {
                     loja.connect(new InetSocketAddress(ENDERECO_SERVER, LOJA_PORTA), 5 * 1000);
-                    System.out.println("Entrou loja 1");
+                    System.out.println("SERVIDOR 1");
                     return new ClientSocket(loja);
                 } catch (IOException e) {
                     e.printStackTrace();

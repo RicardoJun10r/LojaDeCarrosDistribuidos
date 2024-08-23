@@ -58,7 +58,7 @@ public class RSA {
     public String cifragemCliente(String msg) {
         StringBuffer cifrado = new StringBuffer();
 
-        System.out.println("cifrando: " + msg);
+        //System.out.println("cifrando: " + msg);
 
         for (int i = 0; i < msg.length(); i++) {
             int str_0xff = expModCifra2(msg.charAt(i), e, n);
@@ -71,7 +71,7 @@ public class RSA {
     public String cifragemServer(String msg) {
         StringBuffer cifrado = new StringBuffer();
 
-        System.out.println("cifrando: " + msg);
+        //System.out.println("cifrando: " + msg);
 
         for (int i = 0; i < msg.length(); i++) {
             int str_0xff = expModCifra2(msg.charAt(i), e_extrangeiro, this.n);

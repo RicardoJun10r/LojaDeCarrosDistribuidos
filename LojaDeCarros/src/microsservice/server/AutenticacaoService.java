@@ -3,6 +3,8 @@ package microsservice.server;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import util.ClientSocket;
 
@@ -20,7 +22,11 @@ public class AutenticacaoService {
 
     private int BOSS_PORTA = 50000;
 
-    public AutenticacaoService(){}
+    private ExecutorService executorService;
+
+    public AutenticacaoService(){
+        this.executorService = Executors.newVirtualThreadPerTaskExecutor();
+    }
 
     public void start() throws IOException {
         serverSocket = new ServerSocket(PORTA);
@@ -31,13 +37,15 @@ public class AutenticacaoService {
     private void clientConnectionLoop() throws IOException {
         while (true) {
             ClientSocket clientSocket = new ClientSocket(this.serverSocket.accept());
-            new Thread(() -> {
-                try {
-                    clientMessageLoop(clientSocket);
-                } catch (IOException e) {
-                    e.printStackTrace();
+            this.executorService.submit(
+                () -> {
+                    try {
+                        clientMessageLoop(clientSocket);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
-            }).start();
+            );
         }
     }
 
@@ -85,6 +93,10 @@ public class AutenticacaoService {
         } finally {
             clientSocket.close();
         }
+    }
+
+    public void shutdown(){
+        executorService.shutdownNow();
     }
 
     private String isAdmin(String admin){

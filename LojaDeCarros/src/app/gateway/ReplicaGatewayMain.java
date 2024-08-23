@@ -12,5 +12,6 @@ public class ReplicaGatewayMain {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        replicaGatewayMain.shutdown();
     }
 }

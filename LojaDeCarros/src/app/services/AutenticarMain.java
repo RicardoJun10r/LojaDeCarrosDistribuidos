@@ -12,5 +12,6 @@ public class AutenticarMain {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        autenticacaoService.shutdown();
     }
 }

@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.lang.NullPointerException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.net.InetSocketAddress;
 
@@ -40,8 +42,15 @@ public class ReplicaBancoDeDados3 {
 
     private CifrasSimetricas cifrasSimetricas;
 
+    private ExecutorService executorService;
+
     public ReplicaBancoDeDados3() {
         cifrasSimetricas = new CifrasSimetricas();
+        initDB();
+        this.executorService = Executors.newVirtualThreadPerTaskExecutor();
+    }
+
+    private void initDB(){
         this.clientes = new Table<>();
         this.veiculos = new Table<>();
         this.funcionarios = new Table<>();
@@ -80,14 +89,17 @@ public class ReplicaBancoDeDados3 {
                 Integer.parseInt("1112"));
         this.veiculos.Adicionar(new Veiculo("1212", "HR-V", Categoria.EXECUTIVO, LocalDate.of(2021, 9, 5), 290000.0),
                 Integer.parseInt("1212"));
+
     }
 
     public void database() throws IOException {
         while (true) {
             ClientSocket clientSocket = new ClientSocket(this.serverSocket.accept());
-            new Thread(() -> {
-                queries(clientSocket);
-            }).start();
+            this.executorService.submit(
+                () -> {
+                    queries(clientSocket);
+                }
+            );
         }
     }
 
@@ -250,6 +262,10 @@ public class ReplicaBancoDeDados3 {
         } finally {
             clientSocket.close();
         }
+    }
+
+    public void shutdown(){
+        executorService.shutdownNow();
     }
 
     private ClientSocket tryConnect(int porta){

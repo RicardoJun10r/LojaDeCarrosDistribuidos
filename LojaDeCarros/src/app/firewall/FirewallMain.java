@@ -12,5 +12,6 @@ public class FirewallMain {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        firewall.shutdown();
     }
 }

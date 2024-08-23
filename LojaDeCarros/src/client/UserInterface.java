@@ -49,11 +49,11 @@ public class UserInterface implements Runnable {
                 System.out.println(
                         "Resposta da loja: " + mensagem);
             } else {
-                System.out.println("MENSAGEM COM RSA: " + mensagem);
+                //System.out.println("MENSAGEM COM RSA: " + mensagem);
                 mensagem = rsa.decifragemServer(mensagem);
-                System.out.println("DECIFRANDO DO BANCO: " + mensagem);
+                //System.out.println("DECIFRANDO DO BANCO: " + mensagem);
                 mensagem = this.seguranca.decifrar(mensagem);
-                System.out.println("DECIFRANDO AES: " + mensagem);
+                //System.out.println("DECIFRANDO AES: " + mensagem);
                 if (mensagem.split(" ")[0].equals("status")) {
                     logado = Boolean.parseBoolean(mensagem.split(" ")[1]);
                 } else if (mensagem.split(" ")[0].equals("lista")) {
@@ -79,7 +79,7 @@ public class UserInterface implements Runnable {
             System.out.print("> ");
             String senha = scan.next();
             String msg_rsa = this.rsa.cifragemCliente(ADMIN + ";1;" + login + ";" + senha + ";");
-            System.out.println("RSA: " + msg_rsa);
+            //System.out.println("RSA: " + msg_rsa);
             enviar("autenticar;cliente;" + msg_rsa);
             sendKey();
         } else if (op.equals("2")) {
@@ -93,7 +93,7 @@ public class UserInterface implements Runnable {
             senha = scan.next();
             nova_conta += senha;
             String msg_rsa = this.rsa.cifragemCliente(ADMIN + ";2;" + nova_conta + ";");
-            System.out.println("RSA: " + msg_rsa);
+            //System.out.println("RSA: " + msg_rsa);
             enviar("autenticar;cliente;" + msg_rsa);
         }
     }

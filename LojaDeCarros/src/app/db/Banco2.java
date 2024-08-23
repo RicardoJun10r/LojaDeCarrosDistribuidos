@@ -12,5 +12,6 @@ public class Banco2 {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        replicaBancoDeDados2.shutdown();
     }
 }

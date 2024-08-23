@@ -15,5 +15,6 @@ public class GatewayMain {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        gateway.shutdown();
     }
 }

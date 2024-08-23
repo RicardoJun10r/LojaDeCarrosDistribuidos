@@ -12,5 +12,6 @@ public class Loja3 {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        replicaLoja3.shutdown();
     }
 }
