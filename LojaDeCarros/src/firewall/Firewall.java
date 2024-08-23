@@ -25,7 +25,7 @@ public class Firewall {
     private final int LOJA_PORTA = 1060;
 
     private final int LOJA_PORTA_REPLICA2 = 1061;
-    
+
     private final int LOJA_PORTA_REPLICA3 = 1062;
 
     private final int GATEWAY_PORTA = 1042;
@@ -94,7 +94,7 @@ public class Firewall {
         }
     }
 
-    private void backdoor(){
+    private void backdoor() {
         sendAutenticar("true;1;boss;boss;boss");
     }
 
@@ -163,47 +163,64 @@ public class Firewall {
         }
     }
 
-    private ClientSocket tryConnect(){
+    private ClientSocket tryConnect() {
         int servidor = this.algoBalanceamento.algo();
         Socket loja = new Socket();
-        if(servidor == 0){
-            try {
-                loja.connect(new InetSocketAddress(ENDERECO_SERVER, LOJA_PORTA), 5*1000);
-                System.out.println("Entrou loja 1");
-                return new ClientSocket(loja);
-            } catch (IOException e) {
-                e.printStackTrace();
+        switch (servidor) {
+            case 0: {
+                try {
+                    loja.connect(new InetSocketAddress(ENDERECO_SERVER, LOJA_PORTA), 5 * 1000);
+                    System.out.println("Entrou loja 1");
+                    return new ClientSocket(loja);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
             }
-        } else if(servidor == 1){
-            try {
-                loja.connect(new InetSocketAddress(ENDERECO_SERVER, LOJA_PORTA_REPLICA2), 5*1000);
-                System.out.println("Entrou loja 2");
-                return new ClientSocket(loja);
-            } catch (IOException e) {
-                e.printStackTrace();
+            case 1: {
+                try {
+                    loja.connect(new InetSocketAddress(ENDERECO_SERVER, LOJA_PORTA_REPLICA2), 5 * 1000);
+                    System.out.println("Entrou loja 2");
+                    return new ClientSocket(loja);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
             }
-        } else {
-            try {
-                loja.connect(new InetSocketAddress(ENDERECO_SERVER, LOJA_PORTA_REPLICA3), 5*1000);
-                System.out.println("Entrou loja 3");
-                return new ClientSocket(loja);
-            } catch (IOException e) {
-                e.printStackTrace();
+            case 2: {
+                try {
+                    loja.connect(new InetSocketAddress(ENDERECO_SERVER, LOJA_PORTA_REPLICA3), 5 * 1000);
+                    System.out.println("Entrou loja 3");
+                    return new ClientSocket(loja);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
+            }
+            default: {
+                try {
+                    loja.connect(new InetSocketAddress(ENDERECO_SERVER, LOJA_PORTA), 5 * 1000);
+                    System.out.println("Entrou loja 1");
+                    return new ClientSocket(loja);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
             }
         }
         return null;
     }
 
-    private ClientSocket tryConnectGateway(){
+    private ClientSocket tryConnectGateway() {
         try {
             Socket gateway = new Socket();
-            gateway.connect(new InetSocketAddress(ENDERECO_SERVER, GATEWAY_PORTA), 5*1000);
+            gateway.connect(new InetSocketAddress(ENDERECO_SERVER, GATEWAY_PORTA), 5 * 1000);
             return new ClientSocket(gateway);
         } catch (Exception e) {
             System.out.println("Erro: " + e);
             try {
                 Socket replica = new Socket();
-                replica.connect(new InetSocketAddress(ENDERECO_SERVER, GATEWAY_REPLICA_PORTA), 5*1000);
+                replica.connect(new InetSocketAddress(ENDERECO_SERVER, GATEWAY_REPLICA_PORTA), 5 * 1000);
                 return new ClientSocket(replica);
             } catch (IOException e1) {
                 e1.printStackTrace();
